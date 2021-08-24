@@ -22,21 +22,59 @@ module Lever
       stages:        '/stages'
     }
 
+    DEFAULT_SCOPES = 'offline_access'
+
     attr_accessor :base_uri
+    attr_accessor :oauth_base_uri
     attr_reader :options
 
-    def initialize(token, options = {})
+    def initialize(options = {sandbox: true})
       if options[:sandbox]
         @base_uri = 'https://api.sandbox.lever.co/v1'
+        @oauth_base_uri = 'https://sandbox-lever.auth0.com'
       else
         @base_uri = 'https://api.lever.co/v1'
+        @oauth_base_uri = 'https://auth.lever.co'
       end
-
-      @options = { basic_auth: { username: token } }
 
       if options[:headers]
         @options[:headers] = options[:headers]
       end
+    end
+
+    def set_auth_api_token(token)
+      @options[:basic_auth] = { username: token }
+    end
+
+    def set_auth_oauth_token(token)
+      @options[:headers]["Authorization"] = "bearer #{token}"
+    end
+
+    def request_authorization_url(client_id, redirect_uri, state, scopes = DEFAULT_SCOPES)
+      "#{@oauth_base_uri}/authorize?client_id=#{client_id}&redirect_uri=#{redirect_uri}&state=#{state}&response_type=code&scope=#{scopes}&prompt=consent&audience=#{@base_uri}"
+    end
+
+    def request_access_token(client_id, client_secret, redirect_uri, code)
+      options = @options
+      options[:body] = {
+        client_id: client_id,
+        client_secret: client_secret,
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: redirect_uri
+      }
+      HTTParty.post("#{@oauth_base_uri}/oauth/token", options)
+    end
+
+    def refesh_access_token(client_id, client_secret, refresh_token)
+      options = @options
+      options[:body] = {
+        client_id: client_id,
+        client_secret: client_secret,
+        grant_type: 'refresh_token',
+        refresh_token: refresh_token
+      }
+      HTTParty.post("#{@oauth_base_uri}/oauth/token", options)
     end
 
     def users(id: nil, on_error: nil)
@@ -199,4 +237,3 @@ module Lever
     attr_accessor :using_with_retries # see #with_retries
   end
 end
-
