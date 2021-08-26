@@ -22,7 +22,7 @@ module Lever
       stages:        '/stages'
     }
 
-    DEFAULT_SCOPES = 'offline_access'
+    DEFAULT_SCOPES = 'offline_access opportunities:read:admin archive_reasons:read:admin'
 
     attr_accessor :base_uri
     attr_accessor :oauth_base_uri
@@ -39,49 +39,53 @@ module Lever
 
       if options[:headers]
         @options[:headers] = options[:headers]
+      else
+        @options = options
       end
     end
 
     def set_auth_api_token(token)
-      @options[:basic_auth] = { username: token }
+      @options = @options.merge(basic_auth: { username: token })
     end
 
     def set_auth_oauth_token(token)
-      @options[:headers]["Authorization"] = "bearer #{token}"
+      if @options[:headers].present?
+        @options[:headers][:Authorization] = "Bearer #{token}"
+      else
+        @options = @options.merge(headers: { Authorization: "Bearer #{token}" })
+      end
     end
 
     def request_authorization_url(client_id, redirect_uri, state, scopes = DEFAULT_SCOPES)
-      "#{@oauth_base_uri}/authorize?client_id=#{client_id}&redirect_uri=#{redirect_uri}&state=#{state}&response_type=code&scope=#{scopes}&prompt=consent&audience=#{@base_uri}"
+      "#{@oauth_base_uri}/authorize?client_id=#{client_id}&redirect_uri=#{redirect_uri}&state=#{state}&response_type=code&scope=#{scopes}&prompt=consent&audience=#{@base_uri}/"
     end
 
     def request_access_token(client_id, client_secret, redirect_uri, code)
-      options = @options
-      options[:body] = {
+      body = { body: {
         client_id: client_id,
         client_secret: client_secret,
         grant_type: 'authorization_code',
         code: code,
         redirect_uri: redirect_uri
-      }
-      HTTParty.post("#{@oauth_base_uri}/oauth/token", options)
+      }}
+      self.class.post("#{@oauth_base_uri}/oauth/token", body)
     end
 
     def refesh_access_token(client_id, client_secret, refresh_token)
-      options = @options
-      options[:body] = {
+      body = { body: {
         client_id: client_id,
         client_secret: client_secret,
         grant_type: 'refresh_token',
         refresh_token: refresh_token
-      }
-      HTTParty.post("#{@oauth_base_uri}/oauth/token", options)
+      }}
+      self.class.post("#{@oauth_base_uri}/oauth/token", body)
     end
 
     def users(id: nil, on_error: nil)
       get_resource('/users', Lever::User, id, { on_error: on_error })
     end
 
-    def opportunities(id: nil, contact_id: nil, on_error: nil, return_opportunity_collection: false, **query_params)
+    def opportunities(id: nil, contact_id: nil, on_error: nil, return_opportunity_collection: false, query: {limit: 100}, **query_params)
       # Here we're taking the first step in a larger journey to allow methods like this to return a `ResourceCollection`
       #
       # To start, we aim not to change current expected usage. The scenarios are:
@@ -104,11 +108,11 @@ module Lever
         return Lever::OpportunityCollection.new(client: self, query_params: query_params)
       end
 
-      query = if id
-        'expand=applications&expand=stage'
-      else
-        contact_id ? { contact_id: contact_id } : {}
-      end
+      # query = if id
+      #   'expand=applications&expand=stage'
+      # else
+      #   contact_id ? { contact_id: contact_id } : {}
+      # end
 
       get_resource(
         BASE_PATHS[__method__],
@@ -197,13 +201,15 @@ module Lever
 
         include_properties = { client: self }
 
-        if id
+        result = if id
           objekt.new(parsed_response.dig('data').merge(include_properties))
         else
           parsed_response.dig('data').map do |hash|
             objekt.new(hash.merge(include_properties))
           end
         end
+
+        {data: result, next: parsed_response.dig('next'), hasNext: parsed_response.dig('hasNext')}
       else
         if on_error
           on_error.call(response)
