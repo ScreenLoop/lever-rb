@@ -22,7 +22,7 @@ module Lever
       stages:        '/stages'
     }
 
-    DEFAULT_SCOPES = 'offline_access opportunities:read:admin archive_reasons:read:admin'
+    DEFAULT_SCOPES = 'offline_access opportunities:read:admin archive_reasons:read:admin users:read:admin notes:write:admin'
 
     attr_accessor :base_uri
     attr_accessor :oauth_base_uri
@@ -81,8 +81,8 @@ module Lever
       self.class.post("#{@oauth_base_uri}/oauth/token", body)
     end
 
-    def users(id: nil, on_error: nil)
-      get_resource('/users', Lever::User, id, { on_error: on_error })
+    def users(id: nil, on_error: nil, query: {limit: 100})
+      get_resource('/users', Lever::User, id, { query: query, on_error: on_error })
     end
 
     def opportunities(id: nil, contact_id: nil, on_error: nil, return_opportunity_collection: false, query: {limit: 100}, **query_params)
