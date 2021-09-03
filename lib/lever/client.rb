@@ -160,8 +160,8 @@ module Lever
       get_resource('/archive_reasons', Lever::ArchiveReason, nil, { on_error: on_error, query: { type: 'hired' } })
     end
 
-    def add_note(opportunity_id, body)
-      post_resource("/opportunities/#{opportunity_id}/notes", { value: body })
+    def add_note(opportunity_id, body, perform_as = nil)
+      post_resource("/opportunities/#{opportunity_id}/notes#{'?perform_as=' + perform_as if perform_as.present?}", { value: body })
     end
 
     def post_resource(path, body)
