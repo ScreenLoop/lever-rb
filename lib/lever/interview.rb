@@ -10,6 +10,7 @@ module Lever
     property :created_at, from: :createdAt, with: ->(value) { Time.at(value) }
     property :canceled_at, from: :canceledAt, with: ->(value) { Time.at(value) if value }
     property :date
+    property :feedback_template, from: :feedbackTemplate
     property :duration
     property :location
     property :interviewers_data, from: :interviewers
