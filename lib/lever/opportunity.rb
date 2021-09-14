@@ -21,7 +21,7 @@ module Lever
     property :owner
     property :followers
     property :application_data, from: :applications
-    property :created_at, from: :createdAt, with: ->(value) { Time.at(value / 1000.to_f) }
+    property :created_at, from: :createdAt
     property :last_interaction_at, from: :lastInteractionAt
     property :last_advanced_at, from: :lastAdvancedAt
     property :snoozed_until, from: :snoozedUntil
