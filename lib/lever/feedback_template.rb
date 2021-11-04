@@ -6,7 +6,7 @@ module Lever
     property :text
     property :group
     property :instructions
-    property :created_at, from: :createdAt, with: ->(value) { Time.at(value) }
+    property :created_at, from: :createdAt, with: ->(value) { Time.at(value) if value }
     property :updated_at, from: :updatedAt, with: ->(value) { Time.at(value) if value }
     property :stage
     property :fields
