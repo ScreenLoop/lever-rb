@@ -3,6 +3,7 @@
 require 'lever/application'
 require 'lever/archive_reason'
 require 'lever/interview'
+require 'lever/offer'
 require 'lever/opportunity_collection'
 require 'lever/posting'
 require 'lever/stage_collection'
