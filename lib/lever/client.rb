@@ -166,7 +166,7 @@ module Lever
       get_resource('/archive_reasons', Lever::ArchiveReason, nil, { on_error: on_error, query: { type: 'hired' } })
     end
 
-    def offers(opportunity_id: nil, on_error: nil)
+    def offers(opportunity_id:, on_error: nil)
       get_resource("/opportunities/#{opportunity_id}/offers", Lever::Offer, nil, { on_error: on_error })
     end
 
