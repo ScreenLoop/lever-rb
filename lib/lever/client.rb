@@ -4,6 +4,7 @@ require 'lever/application'
 require 'lever/archive_reason'
 require 'lever/feedback_template'
 require 'lever/interview'
+require 'lever/offer'
 require 'lever/opportunity_collection'
 require 'lever/posting'
 require 'lever/stage_collection'
@@ -163,6 +164,10 @@ module Lever
 
     def hired_archive_reasons(on_error: nil)
       get_resource('/archive_reasons', Lever::ArchiveReason, nil, { on_error: on_error, query: { type: 'hired' } })
+    end
+
+    def offers(opportunity_id: nil, on_error: nil)
+      get_resource("/opportunities/#{opportunity_id}/offers", Lever::Offer, nil, { on_error: on_error })
     end
 
     def add_note(opportunity_id, body, perform_as = nil)
