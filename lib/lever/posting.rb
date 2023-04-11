@@ -5,6 +5,7 @@ module Lever
     property :id
     property :text
     property :state
+    property :confidentiality
     property :distribution_channels, from: :distributionChannels
     property :user
     property :owner
