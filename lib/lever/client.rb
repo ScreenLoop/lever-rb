@@ -158,8 +158,8 @@ module Lever
       get_resource('/postings', Lever::Posting, id, { query: query, on_error: on_error })
     end
 
-    def archive_reasons(id: nil, on_error: nil)
-      get_resource('/archive_reasons', Lever::ArchiveReason, id, { on_error: on_error })
+    def archive_reasons(id: nil, on_error: nil, query: {limit: 100})
+      get_resource('/archive_reasons', Lever::ArchiveReason, id, { on_error: on_error, query: query })
     end
 
     def hired_archive_reasons(on_error: nil)
