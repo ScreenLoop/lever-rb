@@ -156,7 +156,7 @@ module Lever
     end
 
     def download_resume(opportunity_id:, id:, on_error: nil)
-      get_resource("/opportunities/#{opportunity_id}/resumes/#{id}/download", String, id, false, { on_error: on_error })
+      download_resource("/opportunities/#{opportunity_id}/resumes/#{id}/download", { on_error: on_error })
     end
 
     def feedback_templates(id: nil, on_error: nil, query: { limit: 100 })
@@ -206,8 +206,28 @@ module Lever
       end
     end
 
-    def get_resource(base_path, objekt, id = nil, add_id_to_path = true, options = {})
-      path = id.nil? || !add_id_to_path ? base_path : "#{base_path}/#{id}"
+    def download_resource(path, options = {})
+      add_query = options[:query]
+      on_error = options[:on_error]
+
+      response = self.class.get("#{base_uri}#{path}", @options.merge(query: add_query))
+
+      if response.success?
+        include_properties = { client: self }
+
+        {
+          data: response,
+          parsed_data: response.parsed_response,
+        }.merge(include_properties)
+      elsif on_error
+        on_error.call(response)
+      else
+        handle_error(response)
+      end
+    end
+
+    def get_resource(base_path, objekt, id = nil, options = {})
+      path = id.nil? ? base_path : "#{base_path}/#{id}"
 
       add_query = options[:query]
       on_error = options[:on_error]
@@ -232,31 +252,35 @@ module Lever
       elsif on_error
         on_error.call(response)
       else
-        error = case response.code
-                when 400
-                  Lever::InvalidRequestError
-                when 401
-                  Lever::UnauthorizedError
-                when 403
-                  Lever::ForbiddenError
-                when 404
-                  Lever::NotFoundError
-                when 429
-                  Lever::TooManyRequestsError
-                when 500
-                  Lever::ServerError
-                when 503
-                  Lever::ServiceUnavailableError
-                else
-                  Lever::Error
-                end
-
-        raise error.new(response.code, response.code)
+        handle_error(response)
       end
     end
 
     private
 
     attr_accessor :using_with_retries # see #with_retries
+
+    def handle_error(response)
+      error = case response.code
+      when 400
+        Lever::InvalidRequestError
+      when 401
+        Lever::UnauthorizedError
+      when 403
+        Lever::ForbiddenError
+      when 404
+        Lever::NotFoundError
+      when 429
+        Lever::TooManyRequestsError
+      when 500
+        Lever::ServerError
+      when 503
+        Lever::ServiceUnavailableError
+      else
+        Lever::Error
+      end
+
+      raise error.new(response.code, response.code)
+    end
   end
 end
