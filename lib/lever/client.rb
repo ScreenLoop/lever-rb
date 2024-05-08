@@ -155,6 +155,10 @@ module Lever
       get_resource(BASE_PATHS[__method__].call(opportunity_id), Lever::Resume, id, { query: query, on_error: on_error })
     end
 
+    def download_resume(opportunity_id:, id:, on_error: nil)
+      get_resource("/opportunities/#{opportunity_id}/resumes/#{id}", Lever::Resume, nil, { on_error: on_error })
+    end
+
     def feedback_templates(id: nil, on_error: nil, query: { limit: 100 })
       get_resource('/feedback_templates', Lever::FeedbackTemplate, id, { query: query, on_error: on_error })
     end
