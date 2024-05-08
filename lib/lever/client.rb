@@ -9,7 +9,7 @@ require 'lever/opportunity_collection'
 require 'lever/posting'
 require 'lever/stage_collection'
 require 'lever/user'
-require 'lever/resume_collection'
+require 'lever/resume'
 
 require 'lever/error'
 
