@@ -23,7 +23,7 @@ module Lever
     BASE_PATHS = {
       opportunities: '/opportunities',
       stages: '/stages',
-      resumes: proc { |op_id| "opportunity_id/#{op_id}/resumes" }
+      resumes: proc { |op_id| "opportunities/#{op_id}/resumes" }
     }
 
     DEFAULT_SCOPES = 'offline_access opportunities:read:admin archive_reasons:read:admin users:read:admin interviews:read:admin postings:read:admin feedback_templates:read:admin notes:write:admin'
