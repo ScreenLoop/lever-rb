@@ -151,32 +151,8 @@ module Lever
       get_resource(BASE_PATHS[__method__], Lever::Stage, id, { on_error: on_error })
     end
 
-    def resumes(opportunity_id:, on_error: nil, **query_params)
-      # # Here we're taking the first step in a larger journey to allow methods like this to return a `ResourceCollection`
-      # #
-      # # To start, we aim not to change current expected usage. The scenarios are:
-      # # client.stages                   # returns an Array of Lever::Stage objects (unchanged)
-      # # client.stages(id: 123)          # returns a Lever::Stage (unchanged)
-      # # client.stages(return_stage_collection: true) # returns a Lever::StageCollection (this is new)
-      # # client.stages(some: :param_val)              # returns a Lever::StageCollection (this is new)
-      # # client.opportunities(id: 123, on_error: [proc], some: :param_val) # raises an error (mixing old/new interfaces)
-      # #
-      # if query_params.any? || return_stage_collection
-      #   if [id, on_error].compact.any?
-      #     raise Lever::Error, "`Lever::Client#stages`'s new interface for returning a StageCollection "\
-      #                         'does not allow for `id:` or `on_error:` keyword args'
-      #   end
-
-      #   return Lever::StageCollection.new(client: self, query_params: query_params)
-      # end
-
-      get_resource(BASE_PATHS[__method__], Lever::Resume, id, { on_error: on_error })
-      # if id.present?
-      #   get_resource(BASE_PATHS[__method__], Lever::Resume, id, { on_error: on_error })
-      #   get_resource("/opportunities/#{opportunity_id}/offers", Lever::Offer, nil, { on_error: on_error })
-      # else
-      #   Lever::ResumeCollection.new(client: self, query_params: query_params)
-      # end
+    def resumes(opportunity_id:, id: nil, on_error: nil, query: { limit: 100 })
+      get_resource(BASE_PATHS[__method__].call(opportunity_id), Lever::Resume, id, { query: query, on_error: on_error })
     end
 
     def feedback_templates(id: nil, on_error: nil, query: { limit: 100 })

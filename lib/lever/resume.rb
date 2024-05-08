@@ -5,6 +5,6 @@ module Lever
     property :id
     property :created_at, from: :createdAt
     property :file
-    property :parsed_data, from: parsedData
+    property :parsed_data, from: :parsedData
   end
 end
