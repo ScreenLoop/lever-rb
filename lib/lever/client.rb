@@ -156,7 +156,7 @@ module Lever
     end
 
     def download_resume(opportunity_id:, id:, on_error: nil)
-      get_resource("/opportunities/#{opportunity_id}/resumes/#{id}", Lever::Resume, nil, { on_error: on_error })
+      get_resource("/opportunities/#{opportunity_id}/resumes/#{id}", Lever::Resume, id, { on_error: on_error })
     end
 
     def feedback_templates(id: nil, on_error: nil, query: { limit: 100 })
