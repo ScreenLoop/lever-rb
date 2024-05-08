@@ -8,9 +8,9 @@ module Lever
     property :parsed_data, from: :parsedData
 
     def parse_resume_file
+      byebug
       return if file.blank?
 
-      byebug
       Lever::File.new(file.merge(client: client))
     end
   end
