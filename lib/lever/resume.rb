@@ -8,7 +8,7 @@ module Lever
     property :parsed_data, from: :parsedData
 
     def parse_resume_file
-      byebug
+      raise Error, "what the file? #{file&.to_json}"
       return if file.blank?
 
       Lever::File.new(file.merge(client: client))
