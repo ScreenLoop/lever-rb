@@ -151,7 +151,7 @@ module Lever
       get_resource(BASE_PATHS[__method__], Lever::Stage, id, { on_error: on_error })
     end
 
-    def resumes(opportunity_id:, id: nil, on_error: nil, query: { limit: 100 })
+    def resumes(opportunity_id:, id: nil, on_error: nil, query: {})
       get_resource(BASE_PATHS[__method__].call(opportunity_id), Lever::Resume, id, { query: query, on_error: on_error })
     end
 
