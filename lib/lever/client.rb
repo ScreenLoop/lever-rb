@@ -156,7 +156,7 @@ module Lever
     end
 
     def download_resume(opportunity_id:, id:, on_error: nil)
-      get_resource("/opportunities/#{opportunity_id}/resumes", Lever::Resume, id, { on_error: on_error })
+      get_resource("/opportunities/#{opportunity_id}/resumes/#{id}/download", String, id, false, { on_error: on_error })
     end
 
     def feedback_templates(id: nil, on_error: nil, query: { limit: 100 })
@@ -206,8 +206,8 @@ module Lever
       end
     end
 
-    def get_resource(base_path, objekt, id = nil, options = {})
-      path = id.nil? ? base_path : "#{base_path}/#{id}"
+    def get_resource(base_path, objekt, id = nil, add_id_to_path = true, options = {})
+      path = id.nil? || !add_id_to_path ? base_path : "#{base_path}/#{id}"
 
       add_query = options[:query]
       on_error = options[:on_error]
