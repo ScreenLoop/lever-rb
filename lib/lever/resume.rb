@@ -10,6 +10,7 @@ module Lever
     def parse_resume_file
       return if file.blank?
 
+      byebug
       Lever::File.new(file.merge(client: client))
     end
   end
