@@ -208,6 +208,7 @@ module Lever
       add_query = options[:query]
       on_error = options[:on_error]
 
+      raise Error, base_path
       response = self.class.get("#{base_uri}#{path}", @options.merge(query: add_query))
       if response.success?
         parsed_response = response.parsed_response
