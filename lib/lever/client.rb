@@ -23,7 +23,7 @@ module Lever
     BASE_PATHS = {
       opportunities: '/opportunities',
       stages: '/stages',
-      resumes: proc { |op_id| "opportunities/#{op_id}/resumes" }
+      resumes: proc { |op_id| "/opportunities/#{op_id}/resumes" }
     }
 
     DEFAULT_SCOPES = 'offline_access opportunities:read:admin archive_reasons:read:admin users:read:admin interviews:read:admin postings:read:admin feedback_templates:read:admin notes:write:admin'
@@ -208,7 +208,6 @@ module Lever
       add_query = options[:query]
       on_error = options[:on_error]
 
-      raise Error, base_path
       response = self.class.get("#{base_uri}#{path}", @options.merge(query: add_query))
       if response.success?
         parsed_response = response.parsed_response
