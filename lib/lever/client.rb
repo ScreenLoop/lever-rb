@@ -9,6 +9,7 @@ require 'lever/opportunity_collection'
 require 'lever/posting'
 require 'lever/stage_collection'
 require 'lever/user'
+require 'lever/resume_collection'
 
 require 'lever/error'
 
@@ -21,16 +22,16 @@ module Lever
 
     BASE_PATHS = {
       opportunities: '/opportunities',
-      stages:        '/stages'
+      stages: '/stages',
+      resumes: proc { |op_id| "opportunity_id/#{op_id}/resumes" }
     }
 
     DEFAULT_SCOPES = 'offline_access opportunities:read:admin archive_reasons:read:admin users:read:admin interviews:read:admin postings:read:admin feedback_templates:read:admin notes:write:admin'
 
-    attr_accessor :base_uri
-    attr_accessor :oauth_base_uri
+    attr_accessor :base_uri, :oauth_base_uri
     attr_reader :options
 
-    def initialize(options = {sandbox: true})
+    def initialize(options = { sandbox: true })
       if options[:sandbox]
         @base_uri = 'https://api.sandbox.lever.co/v1'
         @oauth_base_uri = 'https://sandbox-lever.auth0.com'
@@ -69,7 +70,7 @@ module Lever
         grant_type: 'authorization_code',
         code: code,
         redirect_uri: redirect_uri
-      }}
+      } }
       self.class.post("#{@oauth_base_uri}/oauth/token", body)
     end
 
@@ -79,15 +80,15 @@ module Lever
         client_secret: client_secret,
         grant_type: 'refresh_token',
         refresh_token: refresh_token
-      }}
+      } }
       self.class.post("#{@oauth_base_uri}/oauth/token", body)
     end
 
-    def users(id: nil, on_error: nil, query: {limit: 100})
+    def users(id: nil, on_error: nil, query: { limit: 100 })
       get_resource('/users', Lever::User, id, { query: query, on_error: on_error })
     end
 
-    def opportunities(id: nil, contact_id: nil, on_error: nil, return_opportunity_collection: false, query: {limit: 100}, **query_params)
+    def opportunities(id: nil, contact_id: nil, on_error: nil, return_opportunity_collection: false, query: { limit: 100 }, **query_params)
       # Here we're taking the first step in a larger journey to allow methods like this to return a `ResourceCollection`
       #
       # To start, we aim not to change current expected usage. The scenarios are:
@@ -103,7 +104,7 @@ module Lever
       if query_params.any? || return_opportunity_collection
         if [id, on_error].compact.any?
           raise Lever::Error, "`Lever::Client#opportunities`'s new interface for returning an OpportunityCollection "\
-                              "does not allow for `id:` or `on_error:` keyword args"
+                              'does not allow for `id:` or `on_error:` keyword args'
         end
         query_params.merge!(contact_id: contact_id) unless contact_id.nil?
 
@@ -141,7 +142,7 @@ module Lever
       if query_params.any? || return_stage_collection
         if [id, on_error].compact.any?
           raise Lever::Error, "`Lever::Client#stages`'s new interface for returning a StageCollection "\
-                              "does not allow for `id:` or `on_error:` keyword args"
+                              'does not allow for `id:` or `on_error:` keyword args'
         end
 
         return Lever::StageCollection.new(client: self, query_params: query_params)
@@ -150,15 +151,43 @@ module Lever
       get_resource(BASE_PATHS[__method__], Lever::Stage, id, { on_error: on_error })
     end
 
-    def feedback_templates(id: nil, on_error: nil, query: {limit: 100})
+    def resumes(opportunity_id:, on_error: nil, **query_params)
+      # # Here we're taking the first step in a larger journey to allow methods like this to return a `ResourceCollection`
+      # #
+      # # To start, we aim not to change current expected usage. The scenarios are:
+      # # client.stages                   # returns an Array of Lever::Stage objects (unchanged)
+      # # client.stages(id: 123)          # returns a Lever::Stage (unchanged)
+      # # client.stages(return_stage_collection: true) # returns a Lever::StageCollection (this is new)
+      # # client.stages(some: :param_val)              # returns a Lever::StageCollection (this is new)
+      # # client.opportunities(id: 123, on_error: [proc], some: :param_val) # raises an error (mixing old/new interfaces)
+      # #
+      # if query_params.any? || return_stage_collection
+      #   if [id, on_error].compact.any?
+      #     raise Lever::Error, "`Lever::Client#stages`'s new interface for returning a StageCollection "\
+      #                         'does not allow for `id:` or `on_error:` keyword args'
+      #   end
+
+      #   return Lever::StageCollection.new(client: self, query_params: query_params)
+      # end
+
+      get_resource(BASE_PATHS[__method__], Lever::Resume, id, { on_error: on_error })
+      # if id.present?
+      #   get_resource(BASE_PATHS[__method__], Lever::Resume, id, { on_error: on_error })
+      #   get_resource("/opportunities/#{opportunity_id}/offers", Lever::Offer, nil, { on_error: on_error })
+      # else
+      #   Lever::ResumeCollection.new(client: self, query_params: query_params)
+      # end
+    end
+
+    def feedback_templates(id: nil, on_error: nil, query: { limit: 100 })
       get_resource('/feedback_templates', Lever::FeedbackTemplate, id, { query: query, on_error: on_error })
     end
 
-    def postings(id: nil, on_error: nil, query: {limit: 100})
+    def postings(id: nil, on_error: nil, query: { limit: 100 })
       get_resource('/postings', Lever::Posting, id, { query: query, on_error: on_error })
     end
 
-    def archive_reasons(id: nil, on_error: nil, query: {limit: 100})
+    def archive_reasons(id: nil, on_error: nil, query: { limit: 100 })
       get_resource('/archive_reasons', Lever::ArchiveReason, id, { on_error: on_error, query: query })
     end
 
@@ -171,7 +200,8 @@ module Lever
     end
 
     def add_note(opportunity_id, body, perform_as = nil)
-      post_resource("/opportunities/#{opportunity_id}/notes#{'?perform_as=' + perform_as if perform_as.present?}", { value: body })
+      post_resource("/opportunities/#{opportunity_id}/notes#{'?perform_as=' + perform_as if perform_as.present?}",
+                    { value: body })
     end
 
     def post_resource(path, body)
@@ -180,7 +210,7 @@ module Lever
       response.parsed_response
     end
 
-    def with_retries
+    def with_retries(&block)
       return yield if using_with_retries
 
       begin
@@ -189,9 +219,8 @@ module Lever
         #   higher-level methods
         self.using_with_retries = true
 
-        Retriable.retriable(on: [Lever::TooManyRequestsError, Lever::ServerError, Lever::ServiceUnavailableError]) do
-          yield
-        end
+        Retriable.retriable(on: [Lever::TooManyRequestsError, Lever::ServerError, Lever::ServiceUnavailableError],
+&block)
       ensure
         self.using_with_retries = false
       end
@@ -212,39 +241,37 @@ module Lever
         include_properties = { client: self }
 
         result = if id
-          objekt.new(parsed_response.dig('data').merge(include_properties))
-        else
-          parsed_response.dig('data').map do |hash|
-            objekt.new(hash.merge(include_properties))
-          end
-        end
+                   objekt.new(parsed_response.dig('data').merge(include_properties))
+                 else
+                   parsed_response.dig('data').map do |hash|
+                     objekt.new(hash.merge(include_properties))
+                   end
+                 end
 
-        {data: result, next: parsed_response.dig('next'), hasNext: parsed_response.dig('hasNext')}
+        { data: result, next: parsed_response.dig('next'), hasNext: parsed_response.dig('hasNext') }
+      elsif on_error
+        on_error.call(response)
       else
-        if on_error
-          on_error.call(response)
-        else
-          error = case response.code
-                  when 400
-                    Lever::InvalidRequestError
-                  when 401
-                    Lever::UnauthorizedError
-                  when 403
-                    Lever::ForbiddenError
-                  when 404
-                    Lever::NotFoundError
-                  when 429
-                    Lever::TooManyRequestsError
-                  when 500
-                    Lever::ServerError
-                  when 503
-                    Lever::ServiceUnavailableError
-                  else
-                    Lever::Error
-                  end
+        error = case response.code
+                when 400
+                  Lever::InvalidRequestError
+                when 401
+                  Lever::UnauthorizedError
+                when 403
+                  Lever::ForbiddenError
+                when 404
+                  Lever::NotFoundError
+                when 429
+                  Lever::TooManyRequestsError
+                when 500
+                  Lever::ServerError
+                when 503
+                  Lever::ServiceUnavailableError
+                else
+                  Lever::Error
+                end
 
-          raise error.new(response.code, response.code)
-        end
+        raise error.new(response.code, response.code)
       end
     end
 
