@@ -22,6 +22,7 @@ module Lever
     property :followers
     property :application_data, from: :applications
     property :created_at, from: :createdAt
+    property :updated_at, from: :updatedAt
     property :last_interaction_at, from: :lastInteractionAt
     property :last_advanced_at, from: :lastAdvancedAt
     property :snoozed_until, from: :snoozedUntil
